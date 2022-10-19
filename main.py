@@ -22,7 +22,7 @@ def search_by_title(title):
 				ORDER BY date_added DESC /* Если таких фильмов несколько, в результате буlет самый новый */
 				LIMIT 1 /* ограничиваем вывод 1 результатом */
 				"""
-	result = {}  # не определяем никакой тип для результата
+	result = None  # не определяем никакой тип для результата
 	for row in main_sql_run(sql_query):  # обращаемся к функции с подключением к БД и перебираем результат запроса
 		result = dict(row)  # результат приводим к типу словарь
 	return result
@@ -72,16 +72,46 @@ def search_by_genre(genre):
 		result.append(dict(row))  # в список добавляем словарь
 	return result
 
+def actors_check(actor1, actor2):
+	""" получает в качестве аргумента имена двух актеров,
+	сохраняет всех актеров из колонки cast и возвращает
+	список тех, кто играет с ними в паре больше 2 раз """
+
+	sql_query = f"""
+					SELECT "cast"
+					FROM netflix
+					WHERE "cast" LIKE '%{actor1}%' AND "cast" LIKE '%{actor2}%'
+				"""
+	result = []  # определяем что результат это список
+	for row in main_sql_run(sql_query):  # обращаемся к функции с подключением к БД и перебираем результат запроса
+		result.append(dict(row))  # в список добавляем словарь
+		name_dict = {}  # словарь с подсчетом сколько встречалось каждое имя
+		for item in result:
+			names = item.get("cast").split(", ")  # в список имен сохраняем значение каждого элемента по ключу cast
+			for name in names:
+				if name in name_dict.keys():
+					name_dict[name] += 1  # если имя найдено среди ключей словаря, то добавляем единицу
+				else:
+					name_dict[name] = 1  # есkи нет, значит имя встретилось 1 раз, получаем словарь вида {'name': number}
+
+			name_list = []  # список тех, кто играет в паре c переданными актерами больше 2 раз
+			for name in name_dict:
+				if name not in (actor1, actor2) and name_dict[name] > 2:
+					name_list.append(name)
+	return name_list
+
+print(actors_check("Jack Black", "Dustin Hoffman"))
+
+
 def search_by_type_year_genre(type, year, genre):
 	""" поиск по тип картины (фильм или сериал), год выпуска и ее жанр """
 	sql_query = f"""
-						SELECT title, description
-						FROM netflix
-						WHERE type = '{type}'
-						AND release_year = {year}
-						AND listed_in LIKE '%{genre.lower()}%'
-						
-					"""
+					SELECT title, description
+					FROM netflix
+					WHERE type = '{type}'
+					AND release_year = {year}
+					AND listed_in LIKE '%{genre.lower()}%'
+				"""
 	result = []  # определяем что результат это список
 	for row in main_sql_run(sql_query):  # обращаемся к функции с подключением к БД и перебираем результат запроса
 		result.append(dict(row))  # в список добавляем словарь
