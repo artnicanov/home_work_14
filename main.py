@@ -36,7 +36,7 @@ def search_by_year_range(year1, year2):
 					ORDER BY release_year
 					LIMIT 100  /* ограничиваем вывод 100 результатами */
 				"""
-	result = []  # определяем что результат это список
+	result = None  # определяем что результат это список
 	for row in main_sql_run(sql_query):  # обращаемся к функции с подключением к БД и перебираем результат запроса
 		result.append(dict(row))  # в список добавляем словарь
 	return result
